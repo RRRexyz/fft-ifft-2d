@@ -5,12 +5,16 @@
 #include <QString>
 #include <QImage>
 #include <opencv2/opencv.hpp>
+#include "fft.hpp"
 
 Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 {
     ui->setupUi(this);
 
     connect(ui->enter_ok, &QPushButton::clicked, this, &Widget::on_enter_ok_clicked);
+
+    cv::Mat mat = cv::Mat_<double>(1, 15);
+    FFT(mat);
 }
 
 Widget::~Widget()
