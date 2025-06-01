@@ -13,8 +13,21 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 
     connect(ui->enter_ok, &QPushButton::clicked, this, &Widget::on_enter_ok_clicked);
 
-    cv::Mat mat = cv::Mat_<double>(1, 15);
-    FFT(mat);
+    cv::Mat xn = (cv::Mat_<int>(1, 4) << 1, 2, -1, 3);
+    cv::Mat Xk = FFT(xn);
+    for(int i=0; i<xn.size[1]; i++)
+    {
+        double real = Xk.at<std::complex<double>>(0, i).real();
+        double imag = Xk.at<std::complex<double>>(0, i).imag();
+        if(imag < 0)
+        {
+            qDebug() << "Xk(" << i << ") = " << real << " - " << -imag << "j";
+        }
+        else
+        {
+            qDebug() << "Xk(" << i << ") = " << real << " + " << imag << "j";
+        }
+    }
 }
 
 Widget::~Widget()
