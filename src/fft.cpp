@@ -21,39 +21,47 @@ std::complex<double> W(int N, int k)
 
 
 /**
- * @brief 一维快速傅里叶变换(FFT)
+ * @brief 一维快速傅里叶变换(FFT)算法
  * @param xn 要进行变换的序列x(n)，格式为1xN的cv::Mat矩阵
+ *           其中的元素类型为uchar(8位无符号整数)，这是因为灰度图像的灰度值类型为uchar
+ * @param N 傅里叶变换的点数，必须是2的整数次方
+ * @param type 输入序列x(n)的数据类型，支持的有uchar、int、complex（代表std::complex<double>）
  * @return 傅里叶变换的结果X(k)，格式为1xN的cv::Mat矩阵
+ *          其中的元素类型为std::complex<double>（实部虚部都为双精度浮点数的复数）
  */
-cv::Mat FFT(cv::Mat xn)
+cv::Mat FFT(cv::Mat xn, int N, QString type)
 {
     if(xn.rows != 1) throw std::invalid_argument("x(n) must be 1xN matrix");
-    int N = xn.size[1]; // FFT点数
-    if(N < 1) throw std::invalid_argument("x(n) size must be > 0");
-    int M = 0; // FFT级数
-    // 如果N是2的整数次方，由对数得到M
-    if((N & (N-1)) == 0) 
+
+    if(N < xn.cols) throw std::invalid_argument("N must be >= x(n) size");
+
+    int M = std::log2(N); // 得到FFT级数
+
+    // 将原序列x(n)补零扩充至2的整数次方个元素，并且将元素其转化为复数形式
+    cv::Mat xn_expand = cv::Mat_<std::complex<double>>(1, N);        
+    if(type == "uchar") // 输入序列x(n)的数据类型为uchar
     {
-        M = std::log2(N);
-    }
-    else // 如果N不是2的整数次方，则将点数扩大至大于N的最小的2的整数次方
-    {
-        int i = N; // 给定的FFT点数
-        int times = 0; // 右移次数
-        while(i > 1)
+        for(int i=0; i<xn.size[1]; i++)
         {
-            i >>= 1;
-            times++;
+
+            xn_expand.at<std::complex<double>>(0, i) = static_cast<double>(xn.at<uchar>(0, i));
         }
-        M = times + 1; // 得到FFT级数
     }
-    N = 1 << M; // 扩充后的FFT点数
-    // 将原序列x(n)补零扩充至2的整数次方个元素
-    cv::Mat xn_expand = cv::Mat_<std::complex<double>>(1, N);
-    for(int i=0; i<xn.size[1]; i++)
+    else if(type == "int") // 输入序列x(n)的数据类型为int
     {
-        xn_expand.at<std::complex<double>>(0, i) = static_cast<double>(xn.at<int>(0, i));
+        for(int i=0; i<xn.size[1]; i++)
+        {
+            xn_expand.at<std::complex<double>>(0, i) = static_cast<double>(xn.at<int>(0, i));
+        }
     }
+    else if(type == "complex") // 输入序列x(n)的数据类型为complex
+    {
+        for(int i=0; i<xn.size[1]; i++)
+        {
+            xn_expand.at<std::complex<double>>(0, i) = xn.at<std::complex<double>>(0, i);
+        }
+    }
+
     for(int i=xn.size[1]; i<N; i++)
     {
         xn_expand.at<std::complex<double>>(0, i) = std::complex<double>(0, 0);
@@ -93,4 +101,87 @@ cv::Mat FFT(cv::Mat xn)
         Xk.at<std::complex<double>>(0, i) = xn_expand.at<std::complex<double>>(0, origin_i);
     }
     return Xk;
+}
+
+
+/**
+ * @brief 二维快速傅里叶变换(FFT)算法
+ * @param xnm 要进行变换的二维矩阵x(n,m)
+ * @param type 输入二维矩阵x(n,m)的数据类型，支持的有uchar、int、complex（代表std::complex<double>）
+ * @return 傅里叶变换的结果X(k,v)
+ */
+cv::Mat FFT2D(cv::Mat xnm, QString type)
+{
+    int N = xnm.size[0]; // FFT点数
+    if(N < 1) throw std::invalid_argument("no image");
+    int M = 0; // FFT级数
+    // 如果N是2的整数次方，由对数得到M
+    if((N & (N-1)) == 0) 
+    {
+        M = std::log2(N);
+    }
+    else // 如果N不是2的整数次方，则将点数扩大至大于N的最小的2的整数次方
+    {
+        int i = N; // 给定的FFT点数
+        int times = 0; // 右移次数
+        while(i > 1)
+        {
+            i >>= 1;
+            times++;
+        }
+        M = times + 1; // 得到FFT级数
+    }
+    N = 1 << M; // 扩充后的FFT点数
+
+    // 将原二维矩阵x(n,m)补零扩充至N*N个元素，并将元素转化为复数形式
+    cv::Mat xnm_expand = cv::Mat_<std::complex<double>>(N, N);
+    xnm_expand.setTo(0);
+    if(type == "uchar") // 输入二维矩阵x(n,m)的数据类型为uchar
+    {
+        for(int i=0; i<xnm.size[0]; i++)
+        for(int j=0; j<xnm.size[1]; j++)
+        {
+            xnm_expand.at<std::complex<double>>(i, j) = static_cast<double>(xnm.at<uchar>(i, j));
+        }
+    }
+    else if(type == "int") // 输入二维矩阵x(n,m)的数据类型为int
+    {
+        for(int i=0; i<xnm.size[0]; i++)
+        for(int j=0; j<xnm.size[1]; j++)
+        {
+            xnm_expand.at<std::complex<double>>(i, j) = static_cast<double>(xnm.at<int>(i, j));
+        }
+    }
+    else if(type == "complex") // 输入二维矩阵x(n,m)的数据类型为complex
+    {
+        for(int i=0; i<xnm.size[0]; i++)
+        for(int j=0; j<xnm.size[1]; j++)
+        {
+            xnm_expand.at<std::complex<double>>(i, j) = xnm.at<std::complex<double>>(i, j);
+        }
+    }
+
+    cv::Mat Xkm = cv::Mat_<std::complex<double>>(N, N); // 定义矩阵存储第一级FFT结果
+    for(int i=0; i<N; i++) // 遍历每一列
+    {
+        cv::Mat xm = xnm_expand.col(i).t();
+        cv::Mat Xv = FFT(xm, N, "complex").t();
+        for(int j=0; j<N; j++) // 遍历每一行，将Xv的值复制到Xkv中
+        {
+            Xkm.at<std::complex<double>>(j, i) = Xv.at<std::complex<double>>(j, 0);
+        }
+    }
+
+    cv::Mat Xkv = cv::Mat_<std::complex<double>>(N, N); // 定义矩阵存储第二级FFT结果
+    for(int i=0; i<N; i++) // 遍历每一行
+    {
+        cv::Mat xn = Xkm.row(i);
+        cv::Mat Xk = FFT(xn, N, "complex");
+        for(int j=0; j<N; j++) // 遍历每一列，将Xk的值复制到Xkv中
+        {
+            Xkv.at<std::complex<double>>(i, j) = Xk.at<std::complex<double>>(0, j);
+        }
+    }
+
+    return Xkv;
 }
