@@ -6,6 +6,7 @@
 #include <QImage>
 #include <opencv2/opencv.hpp>
 #include "fft.hpp"
+#include "ifft.hpp"
 
 Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 {
@@ -13,13 +14,20 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 
     connect(ui->enter_ok, &QPushButton::clicked, this, &Widget::on_enter_ok_clicked);
 
-    // cv::Mat xn = (cv::Mat_<uchar>(1, 3) << 1, 1, 1);
-    // cv::Mat Xk = FFT(xn, 4);
-    // for(int i=0; i<Xk.size[1]; i++)
-    // {
-    //     std::cout << "X(" << i << ")=" << Xk.at<std::complex<double>>(0, i) << std::endl;
-    // }
+    cv::Mat xn = (cv::Mat_<uchar>(1, 4) << 4, 2, 3, 1);
+    cv::Mat Xk = FFT(xn, 4, "uchar");
+    for(int i=0; i<Xk.size[1]; i++)
+    {
+        std::cout << "X(" << i << ")=" << Xk.at<std::complex<double>>(0, i) << std::endl;
+    }
 
+    std::cout << std::endl;
+
+    cv::Mat xn_recovered = IFFT(Xk, 4);
+    for(int i=0; i<xn_recovered.size[1]; i++)
+    {
+        std::cout << "x(" << i << ")=" << xn_recovered.at<std::complex<double>>(0, i) << std::endl;
+    }
 
     // cv::Mat xnm = (cv::Mat_<uchar>(4, 4) << 254, 255, 255, 255,
     //                                         255, 254, 255, 255,

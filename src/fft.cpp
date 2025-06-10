@@ -88,7 +88,7 @@ cv::Mat FFT(cv::Mat xn, int N, QString type)
         int order1 = xn_expand_reversed_order[l*(2<<m) + i];
         int order2 = xn_expand_reversed_order[l*(2<<m) + i + (1<<m)];
         std::complex<double> tmp1 = xn_expand.at<std::complex<double>>(0, order1);
-        std::complex<double> tmp2 = W(2<<m, i)*xn_expand.at<std::complex<double>>(0, order2);
+        std::complex<double> tmp2 = W(2<<m, -i)*xn_expand.at<std::complex<double>>(0, order2);
         xn_expand.at<std::complex<double>>(0, order1) = tmp1 + tmp2;
         xn_expand.at<std::complex<double>>(0, order2) = tmp1 - tmp2;
     }
