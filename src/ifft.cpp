@@ -69,6 +69,10 @@ cv::Mat IFFT(cv::Mat Xk, int N)
 }
 
 
+/**
+ * @brief 对二维傅里叶变换后进行过中心化的结果进行逆中心化，以进行IFFT运算
+ * @param complexImg 要进行逆中心化的二维频域复数矩阵
+ */
 void fftInverseShift(cv::Mat& complexImg) 
 {
     int cx = complexImg.cols / 2;
