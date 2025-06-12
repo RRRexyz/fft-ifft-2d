@@ -17,7 +17,7 @@ endif()
 find_package(Qt5 COMPONENTS Widgets Core Gui REQUIRED)
 
 set(OpenCV_DIR ${CMAKE_SOURCE_DIR}/dependencies/opencv-4.11.0/build)
-find_package(OpenCV 4.11.0 REQUIRED)
+find_package(OpenCV REQUIRED)
 
 include_directories(
     include/
