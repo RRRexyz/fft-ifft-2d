@@ -105,6 +105,28 @@ cv::Mat FFT(cv::Mat xn, int N, QString type)
 
 
 /**
+ * @brief 对二维傅里叶变换后的结果进行中心化，将低频分量移动到中心位置
+ * @param complexImg 要进行中心化的二维频域复数矩阵
+ */
+void fftShift(cv::Mat& complexImg) 
+{
+    int cx = complexImg.cols / 2;
+    int cy = complexImg.rows / 2;
+    
+    // 构造四个象限的矩阵视图
+    cv::Mat q0(complexImg, cv::Rect(0, 0, cx, cy));
+    cv::Mat q1(complexImg, cv::Rect(cx, 0, cx, cy));
+    cv::Mat q2(complexImg, cv::Rect(0, cy, cx, cy));
+    cv::Mat q3(complexImg, cv::Rect(cx, cy, cx, cy));
+    
+    // 交换象限
+    cv::Mat tmp;
+    q0.copyTo(tmp); q3.copyTo(q0); tmp.copyTo(q3);
+    q1.copyTo(tmp); q2.copyTo(q1); tmp.copyTo(q2);
+}
+
+
+/**
  * @brief 二维快速傅里叶变换(FFT)算法
  * @param xnm 要进行变换的二维矩阵x(n,m)
  * @param type 输入二维矩阵x(n,m)的数据类型，支持的有uchar、int、complex（代表std::complex<double>）
@@ -182,6 +204,8 @@ cv::Mat FFT2D(cv::Mat xnm, QString type)
             Xkv.at<std::complex<double>>(i, j) = Xk.at<std::complex<double>>(0, j);
         }
     }
+
+    fftShift(Xkv); // 进行中心化
 
     return Xkv;
 }
