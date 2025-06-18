@@ -134,7 +134,7 @@ void fftShift(cv::Mat& complexImg)
  */
 cv::Mat FFT2D(cv::Mat xnm, QString type)
 {
-    int N = xnm.size[0]; // FFT点数
+    int N = std::max(xnm.size[0], xnm.size[1]); // FFT点数
     if(N < 1) throw std::invalid_argument("no image");
     int M = 0; // FFT级数
     // 如果N是2的整数次方，由对数得到M
